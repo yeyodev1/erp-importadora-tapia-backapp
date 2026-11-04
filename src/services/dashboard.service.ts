@@ -97,7 +97,7 @@ async function topCustomers(match: Record<string, unknown>, from: Date, to: Date
   return rows.map((r) => ({ partyId: r._id, name: r.name, identification: r.identification, sales: r.sales, count: r.count }));
 }
 
-async function lowStock() {
+export async function lowStock() {
   const rows = await Product.aggregate([
     { $match: { isActive: true, controlsStock: true, minQty: { $gt: 0 } } },
     { $lookup: { from: StockBalance.collection.name, localField: "_id", foreignField: "productId", as: "stock" } },
@@ -108,7 +108,7 @@ async function lowStock() {
   return { products: rows[0]?.n ?? 0 };
 }
 
-async function overduePayables(today: Date) {
+export async function overduePayables(today: Date) {
   const rows = await PurchaseInvoice.aggregate([
     { $match: { status: "vigente", balance: { $gt: 0 }, dueDate: { $lt: today } } },
     { $group: { _id: null, amount: { $sum: "$balance" }, count: { $sum: 1 } } },
@@ -116,7 +116,7 @@ async function overduePayables(today: Date) {
   return { amount: rows[0]?.amount ?? 0, count: rows[0]?.count ?? 0 };
 }
 
-async function postdatedChecksDue(from: Date, to: Date) {
+export async function postdatedChecksDue(from: Date, to: Date) {
   const rows = await CustomerReceipt.aggregate([
     { $match: { method: "CHEQUE_POSFECHADO", status: "vigente", "check.status": "en_cartera", "check.dueDate": { $gte: from, $lte: to } } },
     { $group: { _id: null, amount: { $sum: "$amount" }, count: { $sum: 1 } } },
