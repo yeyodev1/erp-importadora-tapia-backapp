@@ -43,12 +43,12 @@ export async function supplierBalances(query: Record<string, unknown>) {
   const cutoff = cutoffOf(query.cutoff);
   const filter: Record<string, unknown> = { status: "vigente", date: { $lte: cutoff } };
   if (query.supplierId) filter.supplierId = query.supplierId;
-  const invoices = await PurchaseInvoice.find(filter).select("supplierId supplierRuc supplierName payable").lean<any[]>();
+  const invoices = await PurchaseInvoice.find(filter).select("supplierId supplierRuc supplierName payable dueDate").lean<any[]>();
   const paid = await paidByInvoice(invoices.map((i) => i._id), cutoff);
 
   const bySupplier = new Map<string, any>();
   const row = (id: string, identification: string, name: string) => {
-    if (!bySupplier.has(id)) bySupplier.set(id, { supplierId: id, identification, name, invoices: 0, billed: 0, paid: 0, balance: 0, advances: 0 });
+    if (!bySupplier.has(id)) bySupplier.set(id, { supplierId: id, identification, name, invoices: 0, billed: 0, paid: 0, balance: 0, advances: 0, oldestDue: null });
     return bySupplier.get(id);
   };
   for (const inv of invoices) {
@@ -61,6 +61,8 @@ export async function supplierBalances(query: Record<string, unknown>) {
     r.billed += inv.payable;
     r.paid += p;
     r.balance += balance;
+    // Vencimiento de la factura con saldo más antigua: los días de atraso del proveedor.
+    if (balance > 0 && (!r.oldestDue || inv.dueDate < r.oldestDue)) r.oldestDue = inv.dueDate;
   }
   if (query.includeAdvances === "true") {
     const advances = (await advanceBalances(cutoff, query.supplierId)).filter((a) => a.open > 0);
@@ -85,8 +87,11 @@ export async function supplierStatement(supplierId: string, query: Record<string
   const invoices = await PurchaseInvoice.find({ supplierId, status: "vigente" }).select("docType docNumber date dueDate payable").lean<any[]>();
   const apps = await PayableApplication.find({ supplierId, status: "vigente" }).lean<any[]>();
   const docBy = new Map(invoices.map((i) => [String(i._id), i.docNumber]));
+  const paidBy = new Map<string, number>();
+  for (const a of apps) paidBy.set(String(a.invoiceId), (paidBy.get(String(a.invoiceId)) ?? 0) + a.amount);
   const moves = [
-    ...invoices.map((i) => ({ date: i.date, kind: "factura", docNumber: i.docNumber, dueDate: i.dueDate, invoiceId: i._id, charge: i.payable, credit: 0 })),
+    // `open`: saldo de hoy de la factura, para marcar solo las que siguen vencidas.
+    ...invoices.map((i) => ({ date: i.date, kind: "factura", docNumber: i.docNumber, dueDate: i.dueDate, open: i.payable - (paidBy.get(String(i._id)) ?? 0), invoiceId: i._id, charge: i.payable, credit: 0 })),
     ...apps.map((a) => ({ date: a.date, kind: a.kind, docNumber: docBy.get(String(a.invoiceId)) ?? "", invoiceId: a.invoiceId, sourceId: a.sourceId, charge: 0, credit: a.amount })),
   ].sort((a, b) => a.date.getTime() - b.date.getTime() || b.charge - a.charge);
 
