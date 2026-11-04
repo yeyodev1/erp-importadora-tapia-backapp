@@ -95,6 +95,13 @@ test("cartera por edades: resumida = detallada = libro = mayor de Clientes", asy
   assert.equal(past.summary[0].d0_30, 30000 - 525);
 });
 
+test("facturas y cobros: Vencidas / por Vencer al corte, como el filtro de hoy", async () => {
+  const at = (due: string) => arReports.invoicesAndReceipts({ cutoff: "2026-11-04", due }) as Promise<any>;
+  assert.deepEqual((await at("overdue")).customers[0].invoices.map((i: any) => i.number), [invA.number]);
+  assert.deepEqual((await at("notDue")).customers[0].invoices.map((i: any) => i.number), [invB.number]);
+  assert.equal((await at("")).balance, 19475 + 10000);
+});
+
 test("cheque posfechado: posfechados → tránsito → banco, y devuelto reabre el saldo", async () => {
   const chq: any = await receipts.createReceipt(
     { partyId: customer._id, date: "2026-11-04", method: "CHEQUE_POSFECHADO", amount: 4000, applications: [{ invoiceId: invB._id, amount: 4000 }], check: { number: "8812", bank: "Produbanco", dueDate: "2026-11-20" } },
