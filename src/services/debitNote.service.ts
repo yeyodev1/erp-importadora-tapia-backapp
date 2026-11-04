@@ -11,7 +11,7 @@ import type { Actor } from "./accounting.service";
 import { nextDocNumber } from "./sequence.service";
 import { addAr } from "./arLedger.service";
 import * as salesSri from "./salesSri.service";
-import { oid, paginate, requireText } from "./salesCommon.service";
+import { oid, paginate, requireText, sriStatusFilter } from "./salesCommon.service";
 
 /**
  * Nota de débito: cobra un valor adicional sobre una factura (interés,
@@ -75,6 +75,7 @@ export function listDebitNotes(query: Record<string, unknown>) {
   const filter: Record<string, unknown> = {};
   if (query.invoiceId) filter.invoiceId = oid(query.invoiceId, "factura");
   if (query.partyId) filter.partyId = oid(query.partyId, "cliente");
+  Object.assign(filter, sriStatusFilter(query));
   return paginate(SalesDebitNote, filter, query, ["number", "invoiceNumber", "reason"]);
 }
 
