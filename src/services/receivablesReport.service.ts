@@ -3,7 +3,7 @@ import { SalesInvoice } from "../models/salesInvoice.model";
 import { ArMovement } from "../models/arMovement.model";
 import { dayRange, parseDay } from "../utils/dates";
 import { sum } from "../utils/money";
-import { invoiceFilter, oid, todayEc } from "./salesCommon.service";
+import { oid, reportFilter, todayEc } from "./salesCommon.service";
 
 /**
  * Reportes de cartera a una fecha de corte. Todo sale del libro ArMovement
@@ -35,7 +35,7 @@ function cutoffOf(query: Q) {
 /** Facturas (también las anuladas después del corte) con su saldo al corte. */
 async function invoicesAt(query: Q) {
   const { cutoff, end } = cutoffOf(query);
-  const filter = invoiceFilter({ ...query, includeVoided: "true" }, null);
+  const filter = await reportFilter({ ...query, includeVoided: "true" }, null);
   filter.date = { ...(dayRange(query.from, undefined) ?? {}), $lte: end };
   const invoices = await SalesInvoice.find(filter).select("-xml -lines").sort({ "customer.name": 1, date: 1 }).lean<any[]>();
   const ids = invoices.map((i) => i._id);
@@ -67,7 +67,9 @@ function byCustomer<T>(rows: { inv: any }[], map: (list: any[]) => T) {
 export async function invoicesAndReceipts(query: Q) {
   const { cutoff, rows } = await invoicesAt(query);
   const status = String(query.status ?? "pending");
-  const kept = rows.filter((r) => r.charged > 0 && (status === "all" || (status === "paid" ? r.balance === 0 : r.balance !== 0)));
+  // due: "overdue" (vencidas al corte) | "notDue" (por vencer) | vacío (todas), como el sistema de hoy.
+  const due = (r: { inv: any }) => !query.due || (query.due === "overdue") === new Date(r.inv.dueDate).getTime() < cutoff.getTime();
+  const kept = rows.filter((r) => r.charged > 0 && due(r) && (status === "all" || (status === "paid" ? r.balance === 0 : r.balance !== 0)));
   const detailed = query.detailed === "true";
   const customers = byCustomer(kept, (list) => ({
     invoices: list.map((r) => ({
