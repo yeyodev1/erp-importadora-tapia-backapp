@@ -3,6 +3,7 @@ import type { Express } from "express";
 import { dbConnect, isConnected } from "../src/config/mongo";
 import { createApp } from "../src/app";
 import { seedAdmin } from "../src/services/auth.service";
+import { seedDemo } from "../src/scripts/seed";
 
 /**
  * Entrada para Vercel.
@@ -20,6 +21,8 @@ async function ensureApp(): Promise<Express> {
   if (!arranque) {
     arranque = (async () => {
       await dbConnect();
+      // Base nueva: siembra el arranque (plan, mapa contable, bodegas, bancos). Si ya hay cuentas, no toca nada.
+      await seedDemo({ demoUsers: false });
       await seedAdmin();
       return createApp().app;
     })().catch((error) => {
