@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<autorizacion>
+  <estado>AUTORIZADO</estado>
+  <numeroAutorizacion>1410202601099123456700120010020000123451234567811</numeroAutorizacion>
+  <fechaAutorizacion>2026-10-14T10:32:11-05:00</fechaAutorizacion>
+  <ambiente>PRODUCCIÓN</ambiente>
+  <comprobante><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<factura id="comprobante" version="1.1.0">
+  <infoTributaria>
+    <ambiente>2</ambiente>
+    <tipoEmision>1</tipoEmision>
+    <razonSocial>TECNICENTRO AUTOMOTRIZ DEL PACIFICO S.A.</razonSocial>
+    <nombreComercial>TECNIPACIFICO</nombreComercial>
+    <ruc>0991234567001</ruc>
+    <claveAcceso>1410202601099123456700120010020000123451234567811</claveAcceso>
+    <codDoc>01</codDoc>
+    <estab>001</estab>
+    <ptoEmi>002</ptoEmi>
+    <secuencial>000012345</secuencial>
+    <dirMatriz>Av. Juan Tanca Marengo km 2.5, Guayaquil</dirMatriz>
+  </infoTributaria>
+  <infoFactura>
+    <fechaEmision>14/10/2026</fechaEmision>
+    <dirEstablecimiento>Av. Juan Tanca Marengo km 2.5, Guayaquil</dirEstablecimiento>
+    <obligadoContabilidad>SI</obligadoContabilidad>
+    <tipoIdentificacionComprador>04</tipoIdentificacionComprador>
+    <razonSocialComprador>IMPORTADORA TAPIA BERZOZA IMCATABE CIA. LTDA.</razonSocialComprador>
+    <identificacionComprador>0993014214001</identificacionComprador>
+    <totalSinImpuestos>167.55</totalSinImpuestos>
+    <totalDescuento>0.00</totalDescuento>
+    <totalConImpuestos>
+      <totalImpuesto>
+        <codigo>2</codigo>
+        <codigoPorcentaje>4</codigoPorcentaje>
+        <baseImponible>167.55</baseImponible>
+        <tarifa>15</tarifa>
+        <valor>25.13</valor>
+      </totalImpuesto>
+    </totalConImpuestos>
+    <propina>0.00</propina>
+    <importeTotal>192.68</importeTotal>
+    <moneda>DOLAR</moneda>
+    <pagos>
+      <pago>
+        <formaPago>20</formaPago>
+        <total>192.68</total>
+        <plazo>30</plazo>
+        <unidadTiempo>dias</unidadTiempo>
+      </pago>
+    </pagos>
+  </infoFactura>
+  <detalles>
+    <detalle>
+      <codigoPrincipal>REP-0451</codigoPrincipal>
+      <descripcion>FILTRO DE ACEITE Y PASTILLAS DE FRENO</descripcion>
+      <cantidad>1.000000</cantidad>
+      <precioUnitario>28.000000</precioUnitario>
+      <descuento>0.00</descuento>
+      <precioTotalSinImpuesto>28.00</precioTotalSinImpuesto>
+      <impuestos>
+        <impuesto>
+          <codigo>2</codigo>
+          <codigoPorcentaje>4</codigoPorcentaje>
+          <tarifa>15</tarifa>
+          <baseImponible>28.00</baseImponible>
+          <valor>4.20</valor>
+        </impuesto>
+      </impuestos>
+    </detalle>
+    <detalle>
+      <codigoPrincipal>SRV-MO</codigoPrincipal>
+      <descripcion>MANO DE OBRA MANTENIMIENTO PREVENTIVO CAMIONETA GSB-1234</descripcion>
+      <cantidad>1.000000</cantidad>
+      <precioUnitario>139.550000</precioUnitario>
+      <descuento>0.00</descuento>
+      <precioTotalSinImpuesto>139.55</precioTotalSinImpuesto>
+      <impuestos>
+        <impuesto>
+          <codigo>2</codigo>
+          <codigoPorcentaje>4</codigoPorcentaje>
+          <tarifa>15</tarifa>
+          <baseImponible>139.55</baseImponible>
+          <valor>20.93</valor>
+        </impuesto>
+      </impuestos>
+    </detalle>
+  </detalles>
+  <infoAdicional>
+    <campoAdicional nombre="Email">facturacion@tecnipacifico.ec</campoAdicional>
+  </infoAdicional>
+</factura>]]></comprobante>
+</autorizacion>
