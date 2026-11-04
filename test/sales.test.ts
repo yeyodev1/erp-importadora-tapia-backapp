@@ -162,6 +162,19 @@ test("reportes de ventas: resumido por bodega/día, vendedor y más vendidos", a
   assert.deepEqual(byValue.items.map((i: any) => i.code), ["000005"]);
 });
 
+test("reporte de ventas: filtros de serie, subgrupo y sucursal como en el sistema de hoy", async () => {
+  const range = { from: "2026-11-01", to: "2026-11-30" };
+  assert.equal(((await reports.salesReport({ ...range, series: "001-001" })) as any).totals.count, 2);
+  assert.equal(((await reports.salesReport({ ...range, series: "002-001" })) as any).totals.count, 0);
+  await Product.updateOne({ code: "000005" }, { subgroup: "Frutos" });
+  assert.equal(((await reports.salesReport({ ...range, subgroup: "Frutos" })) as any).totals.count, 1);
+  assert.equal(((await reports.salesReport({ ...range, subgroup: "Nada" })) as any).totals.count, 0);
+  await Party.updateOne({ _id: customer._id }, { "customer.branch": "MATRIZ" });
+  assert.equal(((await reports.salesReport({ ...range, branch: "MATRIZ" })) as any).totals.count, 2);
+  assert.equal(((await reports.salesReport({ ...range, branch: "MATRIZ", partyId: String(gye._id) })) as any).totals.count, 0);
+  assert.equal(((await reports.salesReport({ ...range, branch: "NORTE" })) as any).totals.count, 0);
+});
+
 test("RIDE: A4 y ticket de factura (con firma del cliente) y de la NC", async () => {
   const a4 = await rides.ride("invoice", String(firstInvoice._id), "a4");
   assert.match(a4, /FACTURA 001-001-000000001/);
