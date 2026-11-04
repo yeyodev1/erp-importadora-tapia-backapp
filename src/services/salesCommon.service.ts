@@ -175,6 +175,16 @@ export async function reportFilter(query: Record<string, unknown>, dateField: "d
   return filter;
 }
 
+/**
+ * `?sriStatus=` de los enlaces de la campana: "devuelto" agrupa todo lo rechazado
+ * (devuelto, no autorizado, error) y "sin_firma" lo que falta firmar; solo vigentes.
+ */
+export function sriStatusFilter(query: Record<string, unknown>, field = "sriStatus"): Record<string, unknown> {
+  if (query.sriStatus === "devuelto") return { status: "vigente", [field]: { $in: ["devuelto", "no_autorizado", "error"] } };
+  if (query.sriStatus === "sin_firma") return { status: "vigente", [field]: "sin_firma" };
+  return {};
+}
+
 /** Listado paginado `{ items, total, page, pages }` con búsqueda por número o cliente. */
 export async function paginate(model: Model<any>, filter: Record<string, unknown>, query: Record<string, unknown>, searchFields: string[]) {
   const page = Math.max(1, Number(query.page) || 1);
