@@ -21,6 +21,7 @@ export async function physicalCount(query: StockFilters) {
     subgroup: r.subgroup,
     unit: r.unit,
     qty: r.qty,
+    minQty: r.minQty,
     purchaseUnit: r.purchaseUnit?.name ?? "",
     purchaseQty: roundQty(r.qty / (r.purchaseUnit?.factor || 1)),
     count: null,
