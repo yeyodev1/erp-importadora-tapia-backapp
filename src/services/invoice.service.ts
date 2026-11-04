@@ -12,7 +12,7 @@ import { nextDocNumber } from "./sequence.service";
 import { addAr, hasApplications, reverseAr } from "./arLedger.service";
 import * as salesSri from "./salesSri.service";
 import {
-  addDays, assignCosts, buildLines, customerOf, invoiceFilter, oid, paginate, requireText, salesEntryLines, todayEc,
+  addDays, assignCosts, buildLines, customerOf, invoiceFilter, oid, paginate, requireText, salesEntryLines, sriStatusFilter, todayEc,
 } from "./salesCommon.service";
 
 /**
@@ -119,6 +119,7 @@ export async function listInvoices(query: Record<string, unknown>) {
   const filter = invoiceFilter({ includeVoided: "true", ...query });
   if (query.status) filter.status = String(query.status);
   if (query.pending === "true") filter.balance = { $gt: 0 };
+  Object.assign(filter, sriStatusFilter(query));
   return paginate(SalesInvoice, filter, query, ["number", "customer.name", "customer.identification", "orderRef"]);
 }
 
