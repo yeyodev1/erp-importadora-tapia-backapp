@@ -3,7 +3,7 @@ import { SalesInvoice } from "../models/salesInvoice.model";
 import { Warehouse } from "../models/warehouse.model";
 import { TIMEZONE } from "../utils/dates";
 import { sum } from "../utils/money";
-import { invoiceFilter, oid } from "./salesCommon.service";
+import { invoiceFilter, oid, reportFilter } from "./salesCommon.service";
 
 /**
  * Reportes de ventas ("Ventas Factura" del sistema actual): resumido por
@@ -47,8 +47,8 @@ function row(inv: any, withLines: boolean) {
   };
 }
 
-function find(query: Q) {
-  return SalesInvoice.find(invoiceFilter(query)).select("-xml").sort({ date: 1, createdAt: 1 }).lean<any[]>();
+async function find(query: Q) {
+  return SalesInvoice.find(await reportFilter(query)).select("-xml").sort({ date: 1, createdAt: 1 }).lean<any[]>();
 }
 
 /** Resumido o detallado: bodega → día → facturas, con subtotales en cada nivel. */
