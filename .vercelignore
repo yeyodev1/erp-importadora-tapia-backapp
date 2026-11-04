@@ -1,0 +1,6 @@
+# Los .env locales nunca suben al deploy: las variables de producción viven en Vercel.
+.env
+.env.*
+!.env.example
+node_modules
+dist
