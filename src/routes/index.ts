@@ -12,6 +12,7 @@ import banksRoutes from "./banks.routes";
 import accountingRoutes from "./accounting.routes";
 import taxesRoutes from "./taxes.routes";
 import dashboardRoutes from "./dashboard.routes";
+import notificationsRoutes from "./notifications.routes";
 import { dbMiddleware } from "../middlewares/db.middleware";
 
 /**
@@ -38,6 +39,7 @@ function routerApi(app: Application) {
   router.use("/accounting", accountingRoutes);
   router.use("/taxes", taxesRoutes);
   router.use("/dashboard", dashboardRoutes);
+  router.use("/notifications", notificationsRoutes);
 }
 
 export default routerApi;
