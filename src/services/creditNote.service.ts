@@ -13,7 +13,7 @@ import { nextDocNumber } from "./sequence.service";
 import { addAr } from "./arLedger.service";
 import * as salesSri from "./salesSri.service";
 import {
-  assignCosts, computeTotals, oid, paginate, parseQty, priceLine, requireText, salesEntryLines,
+  assignCosts, computeTotals, oid, paginate, parseQty, priceLine, requireText, salesEntryLines, sriStatusFilter,
 } from "./salesCommon.service";
 
 /**
@@ -124,6 +124,7 @@ export function listCreditNotes(query: Record<string, unknown>) {
   const filter: Record<string, unknown> = {};
   if (query.invoiceId) filter.invoiceId = oid(query.invoiceId, "factura");
   if (query.partyId) filter.partyId = oid(query.partyId, "cliente");
+  Object.assign(filter, sriStatusFilter(query));
   return paginate(SalesCreditNote, filter, query, ["number", "invoiceNumber", "reason"]);
 }
 
