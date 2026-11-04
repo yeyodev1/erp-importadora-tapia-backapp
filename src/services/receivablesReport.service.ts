@@ -94,14 +94,17 @@ export async function statement(query: Q) {
   const movements = await ArMovement.find({ partyId, ...(Object.keys(range).length ? { date: range } : {}) })
     .sort({ date: 1, createdAt: 1 })
     .lean<any[]>();
-  const numbers = new Map(
-    (await SalesInvoice.find({ _id: { $in: movements.map((m) => m.invoiceId) } }).select("number").lean<any[]>()).map((i) => [String(i._id), i.number]),
+  const invoices = new Map(
+    (await SalesInvoice.find({ _id: { $in: movements.map((m) => m.invoiceId) } }).select("number dueDate balance").lean<any[]>()).map((i) => [String(i._id), i]),
   );
   let running = opening;
   const rows = movements.map((m) => {
     running += m.amount;
+    const inv = invoices.get(String(m.invoiceId));
     return {
-      date: m.date, kind: m.kind, invoiceNumber: numbers.get(String(m.invoiceId)), docNumber: m.source?.docNumber, description: m.description,
+      // Vencimiento solo en la línea de la factura y si aún tiene saldo: así se ve su atraso.
+      dueDate: m.kind === "FACTURA" && inv?.balance > 0 ? inv.dueDate : null,
+      date: m.date, kind: m.kind, invoiceNumber: inv?.number, docNumber: m.source?.docNumber, description: m.description,
       debit: m.amount > 0 ? m.amount : 0, credit: m.amount < 0 ? -m.amount : 0, balance: running,
     };
   });
