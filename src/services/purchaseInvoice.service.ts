@@ -14,6 +14,7 @@ import * as sri from "./sri";
 import { buildInvoice } from "./purchaseInvoiceInput.service";
 import { findDuplicate } from "./purchaseXml.service";
 import { docDate } from "./payables.service";
+import { sriStatusFilter } from "./salesCommon.service";
 
 /**
  * Factura de proveedor. Asiento COMPRA: Debe gasto/inventario + IVA pagado;
@@ -203,6 +204,7 @@ export async function listInvoices(query: Record<string, unknown>) {
   }
   const range = dayRange(query.from, query.to);
   if (range) filter.date = range;
+  Object.assign(filter, sriStatusFilter(query, "withholding.sriStatus"));
   const page = Math.max(1, Number(query.page) || 1);
   const limit = Math.min(500, Math.max(1, Number(query.limit) || 50));
   const [items, total] = await Promise.all([
