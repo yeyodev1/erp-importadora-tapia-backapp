@@ -3,6 +3,7 @@ import { Account } from "../models/account.model";
 import { PurchaseInvoice } from "../models/purchaseInvoice.model";
 import { dayRange } from "../utils/dates";
 import { sum } from "../utils/money";
+import { sriStatusFilter } from "./salesCommon.service";
 
 /**
  * Reportes de compras e impuestos de Compras: por proveedor, por cuenta
@@ -17,6 +18,7 @@ async function invoicesIn(query: Record<string, unknown>, extra: Record<string, 
   const filter: Record<string, unknown> = { status: "vigente", date: range, ...extra };
   if (query.supplierId) filter.supplierId = query.supplierId;
   if (query.docType) filter.docType = query.docType;
+  Object.assign(filter, sriStatusFilter(query, "withholding.sriStatus"));
   return PurchaseInvoice.find(filter).select("-withholding.xml").sort({ date: 1, docNumber: 1 }).lean<any[]>();
 }
 
