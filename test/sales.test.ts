@@ -186,3 +186,11 @@ test("RIDE: A4 y ticket de factura (con firma del cliente) y de la NC", async ()
   assert.match(await rides.ride("creditNote", String(nc._id), "a4"), /NOTA DE CRÉDITO[\s\S]*001-001-000000001/);
   await assert.rejects(rides.ride("debitNote", String(nc._id), "a4"), /no encontrado/);
 });
+
+test("listado por estado SRI (enlaces de la campana): devuelto agrupa los rechazos, solo vigentes", async () => {
+  await SalesInvoice.updateOne({ _id: firstInvoice._id }, { sriStatus: "no_autorizado" });
+  const rejected = await invoices.listInvoices({ sriStatus: "devuelto" });
+  assert.ok(rejected.items.some((i: any) => String(i._id) === String(firstInvoice._id)));
+  assert.ok(rejected.items.every((i: any) => i.status === "vigente" && ["devuelto", "no_autorizado", "error"].includes(i.sriStatus)));
+  assert.ok((await invoices.listInvoices({ sriStatus: "sin_firma" })).items.every((i: any) => i.sriStatus === "sin_firma"));
+});
