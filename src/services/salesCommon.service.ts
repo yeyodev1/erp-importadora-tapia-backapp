@@ -149,6 +149,29 @@ export function invoiceFilter(query: Record<string, unknown>, dateField: "date" 
   if (query.sellerName) filter.sellerName = String(query.sellerName);
   if (query.parish) filter["customer.parish"] = String(query.parish);
   if (query.customerType) filter["customer.customerType"] = String(query.customerType);
+  // Serie del comprobante como la elige el contador: "001-001" (establecimiento-punto de emisión).
+  if (query.series) {
+    const [establishment, emissionPoint] = String(query.series).split("-");
+    Object.assign(filter, { establishment, emissionPoint });
+  }
+  return filter;
+}
+
+/**
+ * Filtros de reportes que no están en la factura: sucursal (ficha del cliente)
+ * y subgrupo (ficha del producto). Se resuelven a ids antes de buscar.
+ */
+export async function reportFilter(query: Record<string, unknown>, dateField: "date" | null = "date") {
+  const filter = invoiceFilter(query, dateField);
+  if (query.branch) {
+    const ids = (await Party.find({ "customer.branch": String(query.branch) }).select("_id").lean<any[]>()).map((p) => String(p._id));
+    const only = filter.partyId ? ids.filter((id) => id === String(filter.partyId)) : ids;
+    filter.partyId = { $in: only.map((id) => new Types.ObjectId(id)) };
+  }
+  if (query.subgroup) {
+    const products = await Product.find({ subgroup: String(query.subgroup), ...(query.groupId ? { groupId: oid(query.groupId, "grupo") } : {}) }).select("_id").lean<any[]>();
+    filter["lines.productId"] = { $in: products.map((p) => p._id) };
+  }
   return filter;
 }
 
