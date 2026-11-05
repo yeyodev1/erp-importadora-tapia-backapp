@@ -94,6 +94,7 @@ export async function voidInvoice(id: string, body: { reason?: string; date?: st
     const invoice = await SalesInvoice.findById(oid(id, "factura")).session(session);
     if (!invoice) throw new CustomError("Factura no encontrada", 404);
     if (invoice.status === "anulado") throw new CustomError("La factura ya está anulada", 409);
+    if (invoice.isOpening) throw new CustomError("Es un saldo inicial migrado: se quita desde Configuración › Migración de datos", 409);
     if (date < invoice.date) throw new CustomError("La anulación no puede ser anterior a la factura", 400);
     if (await hasApplications(invoice._id, session)) {
       throw new CustomError("La factura tiene abonos, notas o retenciones: anúlalos primero", 409);
@@ -119,6 +120,8 @@ export async function listInvoices(query: Record<string, unknown>) {
   const filter = invoiceFilter({ includeVoided: "true", ...query });
   if (query.status) filter.status = String(query.status);
   if (query.pending === "true") filter.balance = { $gt: 0 };
+  // Saldos iniciales migrados: son cartera, no ventas; solo los listados de cobro los piden.
+  if (query.includeOpening !== "true") filter.isOpening = { $ne: true };
   Object.assign(filter, sriStatusFilter(query));
   return paginate(SalesInvoice, filter, query, ["number", "customer.name", "customer.identification", "orderRef"]);
 }
