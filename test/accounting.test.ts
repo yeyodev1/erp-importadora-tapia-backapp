@@ -200,3 +200,13 @@ test("importar plan de cuentas: rechaza hijo sin padre y aplica lo válido", asy
   assert.equal((await Account.findOne({ code: "6.1.01" }).lean<any>()).parentCode, "6.1");
   assert.equal((await Account.findOne({ code: BANK }).lean<any>()).name, "Banco Pichincha Cta Cte");
 });
+
+test("importar plan con removeMissing: quita las cuentas que nada usa y deja las usadas con su motivo", async () => {
+  const out = new Set([BANK, "6.1", "6.1.01"]); // 6.1 y 6.1.01 no se usan; el banco tiene asientos
+  const csv = (await Account.find().lean<any[]>()).filter((a) => !out.has(a.code)).map((a) => `${a.code};${a.name};${a.kind}`).join("\n");
+  const r = await chartImport.importChart({ mode: "apply", csv, removeMissing: true });
+  assert.deepEqual(r.toRemove.map((a: any) => a.code).sort(), ["6.1", "6.1.01"]);
+  assert.equal(r.kept.find((a: any) => a.code === BANK)?.reason, "tiene asientos");
+  assert.equal(await Account.countDocuments({ code: /^6\.1/ }), 0);
+  assert.ok(await Account.findOne({ code: BANK }));
+});
