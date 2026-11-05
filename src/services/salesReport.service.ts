@@ -48,7 +48,8 @@ function row(inv: any, withLines: boolean) {
 }
 
 async function find(query: Q) {
-  return SalesInvoice.find(await reportFilter(query)).select("-xml").sort({ date: 1, createdAt: 1 }).lean<any[]>();
+  // Los saldos iniciales migrados no son ventas del período.
+  return SalesInvoice.find({ ...(await reportFilter(query)), isOpening: { $ne: true } }).select("-xml").sort({ date: 1, createdAt: 1 }).lean<any[]>();
 }
 
 /** Resumido o detallado: bodega → día → facturas, con subtotales en cada nivel. */
