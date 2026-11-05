@@ -129,7 +129,7 @@ test("cheque posfechado: posfechados → tránsito → banco, y devuelto reabre 
 
 test("comisiones sobre lo cobrado, estado de cuenta y anular cobro", async () => {
   const c: any = await collections.commissions({ from: "2026-09-01", to: "2026-11-30", rate: "1" });
-  assert.deepEqual(c.items, [{ sellerName: "RUBEN PALMA", collected: 10000, rate: 1, commission: 100 }]);
+  assert.deepEqual(c.items, [{ sellerName: "RUBEN PALMA", collected: 10000, creditNotes: [], credited: 0, base: 10000, rate: 1, commission: 100 }]);
 
   const st: any = await arReports.statement({ partyId: String(customer._id) });
   assert.equal(st.closing, 19475 + 10000);
