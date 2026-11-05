@@ -87,6 +87,7 @@ export async function retry(model: Model<any>, kind: Kind, id: unknown) {
   const doc = await model.findById(String(id)).lean<any>();
   if (!doc) throw new CustomError("Documento no encontrado", 404);
   if (doc.status === "anulado") throw new CustomError("El documento está anulado", 409);
+  if (doc.isOpening) throw new CustomError("Es un saldo inicial migrado de Macio: no se envía al SRI", 409);
   if (doc.sriStatus === "autorizado") throw new CustomError("El comprobante ya está autorizado", 409);
   // Devuelto o no autorizado hay que reemitirlo; lo demás (recibido, error de red) se reconsulta.
   if (doc.accessKey && !["devuelto", "no_autorizado"].includes(doc.sriStatus)) {
