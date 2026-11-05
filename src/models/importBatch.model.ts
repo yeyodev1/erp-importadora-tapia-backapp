@@ -17,7 +17,7 @@ export interface IRestore {
 
 export interface IImportBatch {
   number: string;
-  source: "macio" | "proveedores";
+  source: "macio" | "proveedores" | "proveedores-excel";
   status: "aplicado" | "quitado";
   counts: Record<string, number>;
   /** Centavos. */
@@ -41,7 +41,7 @@ const by = {
 const importBatchSchema = new Schema<IImportBatch>(
   {
     number: { type: String, required: true, unique: true },
-    source: { type: String, enum: ["macio", "proveedores"], required: true },
+    source: { type: String, enum: ["macio", "proveedores", "proveedores-excel"], required: true },
     status: { type: String, enum: ["aplicado", "quitado"], default: "aplicado" },
     counts: { type: Schema.Types.Mixed, default: {} },
     totals: { type: Schema.Types.Mixed, default: {} },
