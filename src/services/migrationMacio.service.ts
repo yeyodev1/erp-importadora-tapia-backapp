@@ -29,7 +29,7 @@ export async function nextBatchNumber(session: ClientSession) {
 }
 
 /** Completa solo lo vacío de una ficha que ya existía y anota cómo estaba. */
-function fillBlanks(existing: any, wanted: Record<string, unknown>): IRestore | null {
+export function fillBlanks(existing: any, wanted: Record<string, unknown>): IRestore | null {
   const previous: Record<string, unknown> = {};
   const applied: Record<string, unknown> = {};
   for (const [path, value] of Object.entries(wanted)) {
