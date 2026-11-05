@@ -1,5 +1,6 @@
 import { CustomError } from "../errors/customError.error";
 import { SalesInvoice } from "../models/salesInvoice.model";
+import { SalesCreditNote } from "../models/salesCreditNote.model";
 import { SalesWithholding } from "../models/salesWithholding.model";
 import { CustomerReceipt } from "../models/customerReceipt.model";
 import { dayRange } from "../utils/dates";
@@ -60,6 +61,11 @@ export async function withholdingsReport(query: Q) {
  * vigentes; NC y retenciones no cuentan), al `rate` % que llegue en query.
  * shortcut: la regla real de Tapia está pendiente (¿base sin IVA? ¿cheques aún no acreditados?); hoy cuenta el abono completo en la fecha del cobro.
  */
+/**
+ * Comisiones del rango: el % sobre lo cobrado a las facturas de cada vendedor,
+ * menos las notas de crédito emitidas en el mismo rango a sus clientes (salen
+ * detalladas: NC, cliente y factura que rebaja).
+ */
 export async function commissions(query: Q) {
   const rate = Number(query.rate ?? 1);
   if (!(rate >= 0 && rate <= 100)) throw new CustomError("Porcentaje de comisión inválido", 400);
@@ -67,18 +73,35 @@ export async function commissions(query: Q) {
   const range = dayRange(query.from, query.to);
   if (range) filter.date = range;
   const receipts = await CustomerReceipt.find(filter).lean<any[]>();
+  const notes = await SalesCreditNote.find({ status: "vigente", ...(range ? { date: range } : {}) })
+    .select("number date invoiceId invoiceNumber customerName sellerName total reason").sort({ date: 1, number: 1 }).lean<any[]>();
   const apps = receipts.flatMap((r) => r.applications);
-  const sellers = new Map(
-    (await SalesInvoice.find({ _id: { $in: apps.map((a) => a.invoiceId) } }).select("sellerName").lean<any[]>()).map((i) => [String(i._id), i.sellerName || "(sin vendedor)"]),
+  const invoices = new Map(
+    (await SalesInvoice.find({ _id: { $in: [...apps.map((a) => a.invoiceId), ...notes.map((n) => n.invoiceId)] } }).select("sellerName customer.name").lean<any[]>())
+      .map((i) => [String(i._id), i]),
   );
-  const bySeller = new Map<string, number>();
-  for (const a of apps) {
-    const seller = sellers.get(String(a.invoiceId))!;
-    bySeller.set(seller, (bySeller.get(seller) ?? 0) + a.amount);
+  const sellerOf = (invoiceId: unknown, own = "") => own || invoices.get(String(invoiceId))?.sellerName || "(sin vendedor)";
+
+  const bySeller = new Map<string, { collected: number; creditNotes: any[] }>();
+  const of = (seller: string) => bySeller.get(seller) ?? bySeller.set(seller, { collected: 0, creditNotes: [] }).get(seller)!;
+  for (const a of apps) of(sellerOf(a.invoiceId)).collected += a.amount;
+  for (const n of notes) {
+    of(sellerOf(n.invoiceId, n.sellerName)).creditNotes.push({
+      number: n.number, date: n.date, invoiceNumber: n.invoiceNumber, amount: n.total, reason: n.reason,
+      customerName: n.customerName || invoices.get(String(n.invoiceId))?.customer?.name || "",
+    });
   }
   const items = [...bySeller]
     .filter(([seller]) => !query.sellerName || seller === query.sellerName)
-    .map(([sellerName, collected]) => ({ sellerName, collected, rate, commission: percentOf(collected, rate) }))
+    .map(([sellerName, { collected, creditNotes }]) => {
+      const credited = sum(creditNotes.map((n) => n.amount));
+      const base = Math.max(0, collected - credited);
+      return { sellerName, collected, creditNotes, credited, base, rate, commission: percentOf(base, rate) };
+    })
     .sort((a, b) => b.collected - a.collected);
-  return { rate, items, collected: sum(items.map((i) => i.collected)), commission: sum(items.map((i) => i.commission)) };
+  return {
+    rate, items,
+    collected: sum(items.map((i) => i.collected)), credited: sum(items.map((i) => i.credited)),
+    base: sum(items.map((i) => i.base)), commission: sum(items.map((i) => i.commission)),
+  };
 }
