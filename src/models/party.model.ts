@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 /**
  * "Persona" del sistema actual: un mismo RUC puede ser cliente, proveedor y
@@ -31,6 +31,8 @@ export interface IParty {
   };
   supplier: { creditDays: number; defaultExpenseAccount: string };
   isActive: boolean;
+  /** Importación que lo creó (Migración de datos): "Quitar datos importados" lo borra. */
+  importBatchId: Types.ObjectId | null;
 }
 
 const partySchema = new Schema<IParty>(
@@ -59,6 +61,7 @@ const partySchema = new Schema<IParty>(
       defaultExpenseAccount: { type: String, default: "" },
     },
     isActive: { type: Boolean, default: true },
+    importBatchId: { type: Schema.Types.ObjectId, default: null, index: true },
   },
   { timestamps: true },
 );
