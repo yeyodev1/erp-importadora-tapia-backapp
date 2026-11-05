@@ -4,6 +4,7 @@ import { actorOf } from "../utils/actor";
 import * as macio from "../services/migrationMacio.service";
 import { previewMacio } from "../services/migrationPreview.service";
 import * as suppliers from "../services/migrationSuppliers.service";
+import * as supplierList from "../services/migrationSupplierList.service";
 import * as demo from "../services/migrationDemo.service";
 import * as undo from "../services/migrationUndo.service";
 
@@ -21,6 +22,8 @@ export const macioPreview = wrap((req) => previewMacio(req.body?.data));
 export const macioApply = wrap((req) => macio.applyMacio(req.body?.data, actorOf(req)), 201);
 export const suppliersPreview = wrap(() => suppliers.previewSuppliers());
 export const suppliersApply = wrap((req) => suppliers.applySuppliers(actorOf(req)), 201);
+export const supplierListPreview = wrap((req) => supplierList.previewSupplierList(req.body?.rows));
+export const supplierListApply = wrap((req) => supplierList.applySupplierList(req.body?.rows, actorOf(req)), 201);
 export const demoPreview = wrap(() => demo.previewDemo());
 export const demoApply = wrap(() => demo.applyDemo());
 export const listBatches = wrap(() => undo.listBatches());
