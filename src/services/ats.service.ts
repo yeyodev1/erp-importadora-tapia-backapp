@@ -188,7 +188,7 @@ export async function buildAts(period: string) {
     Warehouse.find({ isActive: true }).lean<any[]>(),
     PurchaseInvoice.find({ date }).select("-withholding.xml -expenseLines -productLines").sort({ date: 1, docNumber: 1 }).lean<any[]>(),
     SupplierCreditNote.find({ date, status: "vigente" }).sort({ date: 1 }).lean<any[]>(),
-    SalesInvoice.find({ date }).select(noXml).sort({ date: 1, number: 1 }).lean<any[]>(),
+    SalesInvoice.find({ date, isOpening: { $ne: true } }).select(noXml).sort({ date: 1, number: 1 }).lean<any[]>(),
     SalesCreditNote.find({ date }).select(noXml).sort({ date: 1, number: 1 }).lean<any[]>(),
     SalesDebitNote.find({ date }).select("-xml").sort({ date: 1, number: 1 }).lean<any[]>(),
     SalesWithholding.find({ date, status: "vigente" }).sort({ date: 1 }).lean<any[]>(),
