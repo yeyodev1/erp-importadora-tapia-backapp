@@ -25,6 +25,10 @@ export interface IProduct {
   prices: { list: string; price: number }[];
   imageUrl: string;
   isActive: boolean;
+  /** Notas internas (ej. "factor pendiente" de la migración). */
+  notes: string;
+  /** Importación que lo creó (Migración de datos): "Quitar datos importados" lo borra. */
+  importBatchId: Types.ObjectId | null;
 }
 
 const productSchema = new Schema<IProduct>(
@@ -49,6 +53,8 @@ const productSchema = new Schema<IProduct>(
     prices: { type: [{ list: String, price: Number, _id: false }], default: [] },
     imageUrl: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
+    notes: { type: String, default: "" },
+    importBatchId: { type: Schema.Types.ObjectId, default: null, index: true },
   },
   { timestamps: true },
 );
