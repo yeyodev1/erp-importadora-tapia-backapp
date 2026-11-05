@@ -116,6 +116,20 @@ test("NC parcial baja el saldo, reingresa al costo de salida y no excede saldo n
   );
 });
 
+test("comisiones: la NC del mes sale en el vendedor del cliente, detallada, y rebaja la base", async () => {
+  const collections = await import("../src/services/collectionsReport.service");
+  const nc: any = (await creditNotes.listCreditNotes({ invoiceId: String(firstInvoice._id) })).items[0];
+  assert.equal(nc.sellerName, "RUBEN PALMA");
+  const c: any = await collections.commissions({ from: "2026-11-01", to: "2026-11-30", rate: "2" });
+  const ruben = c.items.find((i: any) => i.sellerName === "RUBEN PALMA");
+  assert.equal(ruben.credited, 3000);
+  assert.deepEqual(ruben.creditNotes.map((n: any) => [n.number, n.invoiceNumber, n.amount]), [[nc.number, firstInvoice.number, 3000]]);
+  assert.ok(ruben.creditNotes[0].customerName, "dice de qué cliente es");
+  assert.equal(ruben.base, Math.max(0, ruben.collected - 3000));
+  assert.equal(ruben.commission, Math.round(ruben.base * 0.02));
+  assert.equal((await collections.commissions({ from: "2026-12-01", to: "2026-12-31", rate: "2" })).credited, 0, "fuera del mes no rebaja");
+});
+
 test("nota de débito suma al saldo con IVA", async () => {
   const nd: any = await debitNotes.createDebitNote({ invoiceId: firstInvoice._id, date: "2026-11-06", reason: "Flete", amount: 1000, vatRate: 15 }, ACTOR);
   assert.equal(nd.total, 1150);
