@@ -6,6 +6,7 @@ import * as ledgerReports from "../services/ledgerReports.service";
 import * as financialStatements from "../services/financialStatements.service";
 import * as yearCloseService from "../services/yearClose.service";
 import * as chartImportService from "../services/chartImport.service";
+import * as recodeOpeningService from "../services/openingRecode.service";
 
 const wrap =
   (fn: (req: AuthRequest) => Promise<unknown>, status = 200) =>
@@ -36,3 +37,4 @@ export const closeYear = wrap((req) => yearCloseService.closeYear(req.body, acto
 export const reopenYear = wrap((req) => yearCloseService.reopenYear(req.params.year, req.body, actorOf(req)));
 
 export const importChart = wrap((req) => chartImportService.importChart(req.body));
+export const recodeOpening = wrap((req) => recodeOpeningService.recodeOpening(req.body, actorOf(req)));
