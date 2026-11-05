@@ -21,7 +21,7 @@ const wrap =
 const q = (req: Request) => req.query as Record<string, unknown>;
 const id = (req: Request) => String(req.params.id);
 
-export const openInvoices = wrap((req) => invoiceService.listInvoices({ ...q(req), status: "vigente", pending: "true" }));
+export const openInvoices = wrap((req) => invoiceService.listInvoices({ ...q(req), status: "vigente", pending: "true", includeOpening: "true" }));
 
 export const createReceipt = wrap((req) => receiptService.createReceipt(req.body, actorOf(req)), 201);
 export const listReceipts = wrap((req) => receiptService.listReceipts(q(req)));
