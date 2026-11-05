@@ -24,5 +24,6 @@ router.post("/year-close", accountingController.closeYear);
 router.post("/year-close/:year/reopen", accountingController.reopenYear);
 
 router.post("/chart/import", accountingController.importChart);
+router.post("/chart/recode-opening", accountingController.recodeOpening);
 
 export default router;
