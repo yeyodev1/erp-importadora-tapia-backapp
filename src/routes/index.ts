@@ -14,6 +14,7 @@ import taxesRoutes from "./taxes.routes";
 import dashboardRoutes from "./dashboard.routes";
 import notificationsRoutes from "./notifications.routes";
 import migrationRoutes from "./migration.routes";
+import payrollRoutes from "./payroll.routes";
 import { dbMiddleware } from "../middlewares/db.middleware";
 
 /**
@@ -42,6 +43,7 @@ function routerApi(app: Application) {
   router.use("/dashboard", dashboardRoutes);
   router.use("/notifications", notificationsRoutes);
   router.use("/migration", migrationRoutes);
+  router.use("/payroll", payrollRoutes);
 }
 
 export default routerApi;
