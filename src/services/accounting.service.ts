@@ -2,7 +2,7 @@ import { ClientSession, Types } from "mongoose";
 import { CustomError } from "../errors/customError.error";
 import { Account } from "../models/account.model";
 import { JournalEntry, EntryType, IJournalEntry } from "../models/journalEntry.model";
-import { Settings, ISettings, AccountMapKey } from "../models/settings.model";
+import { Settings, ISettings, AccountMapKey, ACCOUNT_DEFAULTS } from "../models/settings.model";
 import { formatCents, sum } from "../utils/money";
 import * as sequenceService from "./sequence.service";
 
@@ -39,11 +39,15 @@ export async function getSettings(session?: ClientSession): Promise<ISettings> {
   return settings;
 }
 
-/** Cuenta del mapa contable; si no está configurada, el error dice cuál falta. */
-export async function mappedAccount(key: AccountMapKey, session?: ClientSession): Promise<string> {
-  const code = (await getSettings(session)).accounts?.[key];
+/** Cuenta del mapa contable (o su valor por defecto); si no hay, el error dice cuál falta. */
+export function accountOf(settings: ISettings, key: AccountMapKey): string {
+  const code = settings.accounts?.[key] || ACCOUNT_DEFAULTS[key];
   if (!code) throw new CustomError(`Configura la cuenta contable "${key}" en Configuración`, 400);
   return code;
+}
+
+export async function mappedAccount(key: AccountMapKey, session?: ClientSession): Promise<string> {
+  return accountOf(await getSettings(session), key);
 }
 
 export async function assertPeriodOpen(date: Date, session?: ClientSession): Promise<void> {
