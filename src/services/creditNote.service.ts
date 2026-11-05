@@ -107,6 +107,7 @@ export async function createCreditNote(body: CreditNoteBody, actor: Actor) {
       [{
         _id, number, sequential, establishment: invoice.establishment, emissionPoint: invoice.emissionPoint,
         invoiceId: invoice._id, invoiceNumber: invoice.number, warehouseId: invoice.warehouseId, partyId: invoice.partyId,
+        customerName: invoice.customer?.name ?? "", sellerName: invoice.sellerName ?? "",
         date, reason, returnsStock, lines, ...totals, journalEntryId: entry._id, createdBy: actor,
       }],
       { session },
