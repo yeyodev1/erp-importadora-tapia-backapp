@@ -1,11 +1,28 @@
 import { CustomError } from "../errors/customError.error";
 import { Account } from "../models/account.model";
-import { Settings, ACCOUNT_MAP_KEYS } from "../models/settings.model";
+import { Settings, ACCOUNT_MAP_KEYS, ACCOUNT_DEFAULTS, PAYROLL_DEFAULTS } from "../models/settings.model";
 import { User, ROLES } from "../models/user.model";
 import * as authService from "./auth.service";
 
+/** Con los valores por defecto de las claves nuevas (nómina) que la base aún no tiene grabadas. */
 export async function get() {
-  return (await Settings.findById("main").lean()) ?? (await Settings.create({ _id: "main" })).toObject();
+  const s: any = (await Settings.findById("main").lean()) ?? (await Settings.create({ _id: "main" })).toObject();
+  const accounts = { ...s.accounts };
+  for (const [k, code] of Object.entries(ACCOUNT_DEFAULTS)) accounts[k] ||= code;
+  return { ...s, accounts, payroll: { ...PAYROLL_DEFAULTS, ...s.payroll } };
+}
+
+/** SBU en centavos y tasas en % (0–100). */
+function payrollRates(body: Record<string, unknown>) {
+  const data: Record<string, number> = {};
+  for (const key of Object.keys(body)) {
+    if (!(key in PAYROLL_DEFAULTS)) throw new CustomError(`Parámetro de nómina desconocido: ${key}`, 400);
+    const n = Number(body[key]);
+    const ok = key === "sbu" ? Number.isInteger(n) && n > 0 : n >= 0 && n <= 100;
+    if (!ok) throw new CustomError(`Valor inválido para ${key}`, 400);
+    data[`payroll.${key}`] = n;
+  }
+  return data;
 }
 
 /** Actualiza empresa, ambiente SRI y mapa contable. Las cuentas del mapa deben existir y ser de movimiento. */
@@ -16,6 +33,7 @@ export async function update(body: any) {
     if (![1, 2].includes(Number(body.sriEnvironment))) throw new CustomError("Ambiente SRI inválido", 400);
     data.sriEnvironment = Number(body.sriEnvironment);
   }
+  if (body.payroll) Object.assign(data, payrollRates(body.payroll));
   if (body.accounts) {
     for (const key of Object.keys(body.accounts)) {
       if (!ACCOUNT_MAP_KEYS.includes(key as any)) throw new CustomError(`Clave contable desconocida: ${key}`, 400);
@@ -28,13 +46,15 @@ export async function update(body: any) {
       data[`accounts.${key}`] = code;
     }
   }
-  return Settings.findByIdAndUpdate("main", { $set: data }, { new: true, upsert: true }).lean();
+  await Settings.updateOne({ _id: "main" }, { $set: data }, { upsert: true });
+  return get();
 }
 
 /** Cierra (o reabre con null) los meses hasta "AAAA-MM" inclusive. */
 export async function lockThrough(period: string | null) {
   if (period !== null && !/^\d{4}-\d{2}$/.test(period)) throw new CustomError("Período inválido (AAAA-MM)", 400);
-  return Settings.findByIdAndUpdate("main", { lockedThrough: period }, { new: true, upsert: true }).lean();
+  await Settings.updateOne({ _id: "main" }, { lockedThrough: period }, { upsert: true });
+  return get();
 }
 
 export async function listUsers() {
