@@ -15,6 +15,9 @@ export interface ISalesCreditNote extends ISriFields, ITotals {
   invoiceNumber: string;
   warehouseId: Types.ObjectId;
   partyId: Types.ObjectId;
+  /** Del cliente al emitir: con ellos la NC se rebaja de las comisiones de ese vendedor. */
+  customerName: string;
+  sellerName: string;
   date: Date;
   reason: string;
   returnsStock: boolean;
@@ -34,6 +37,8 @@ const creditNoteSchema = new Schema<ISalesCreditNote>(
     invoiceNumber: String,
     warehouseId: { type: Schema.Types.ObjectId, ref: "Warehouse", required: true },
     partyId: { type: Schema.Types.ObjectId, ref: "Party", required: true },
+    customerName: { type: String, default: "" },
+    sellerName: { type: String, default: "", index: true },
     date: { type: Date, required: true },
     reason: { type: String, required: true },
     returnsStock: { type: Boolean, default: true },
