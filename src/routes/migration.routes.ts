@@ -11,6 +11,8 @@ router.post("/macio/preview", migration.macioPreview);
 router.post("/macio/apply", migration.macioApply);
 router.post("/proveedores/preview", migration.suppliersPreview);
 router.post("/proveedores/apply", migration.suppliersApply);
+router.post("/proveedores-excel/preview", migration.supplierListPreview);
+router.post("/proveedores-excel/apply", migration.supplierListApply);
 router.post("/demo/preview", migration.demoPreview);
 router.post("/demo/apply", migration.demoApply);
 router.get("/batches", migration.listBatches);
