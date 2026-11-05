@@ -74,6 +74,9 @@ export interface ISalesInvoice extends ISriFields, ITotals {
   voidReason: string;
   journalEntryId: Types.ObjectId | null;
   createdBy: { userId: Types.ObjectId | null; name: string };
+  /** Saldo inicial migrado (Macio): solo cartera; sin líneas, sin stock, sin SRI y no cuenta como venta del período. */
+  isOpening: boolean;
+  importBatchId: Types.ObjectId | null;
   createdAt?: Date;
 }
 
@@ -145,7 +148,7 @@ const salesInvoiceSchema = new Schema<ISalesInvoice>(
     notes: { type: String, default: "" },
     orderRef: { type: String, default: "" },
     proformaId: { type: Schema.Types.ObjectId, default: null },
-    lines: { type: [saleLineSchema], required: true },
+    lines: { type: [saleLineSchema], required: function (this: ISalesInvoice) { return !this.isOpening; } },
     ...totalsShape,
     balance: { type: Number, required: true },
     status: { type: String, enum: ["vigente", "anulado"], default: "vigente" },
@@ -153,6 +156,8 @@ const salesInvoiceSchema = new Schema<ISalesInvoice>(
     journalEntryId: { type: Schema.Types.ObjectId, default: null },
     ...sriShape,
     createdBy: createdByShape,
+    isOpening: { type: Boolean, default: false, index: true },
+    importBatchId: { type: Schema.Types.ObjectId, default: null, index: true },
   },
   { timestamps: true },
 );
