@@ -128,7 +128,7 @@ export async function postdatedChecksDue(from: Date, to: Date) {
 async function sriPending() {
   const notAuthorized = { status: "vigente", sriStatus: { $ne: "autorizado" } };
   const [invoices, creditNotes, debitNotes, withholdings] = await Promise.all([
-    SalesInvoice.countDocuments(notAuthorized),
+    SalesInvoice.countDocuments({ ...notAuthorized, isOpening: { $ne: true } }),
     SalesCreditNote.countDocuments(notAuthorized),
     SalesDebitNote.countDocuments(notAuthorized),
     PurchaseInvoice.countDocuments({ status: "vigente", withholding: { $ne: null }, "withholding.sriStatus": { $ne: "autorizado" } }),
@@ -142,7 +142,7 @@ export async function getDashboard(viewer: Viewer, query: Record<string, unknown
   periodBounds(period); // valida AAAA-MM
   const can = (section: string) => viewer.role === "admin" || SECTIONS[section].includes(viewer.role);
   const own = viewer.role === "vendedor" ? { sellerName: viewer.name } : {};
-  const match = { status: "vigente", ...own };
+  const match = { status: "vigente", isOpening: { $ne: true }, ...own };
   const yearStart = new Date(Date.UTC(Number(period.slice(0, 4)), 0, 1));
   const { end } = periodBounds(period);
   const todayRange = dayRange(today, today)!;
